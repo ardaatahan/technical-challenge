@@ -4,6 +4,7 @@ import numpy as np
 import aiohttp
 import asyncio
 import cv2
+import dlib
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
@@ -57,10 +58,14 @@ async def download_profile_image(url):
 
 
 def detect_face_in_image(image):
-    face_classifier = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
-    face = face_classifier.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5)
-    for x, y, w, h in face:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 4)
+    detector = dlib.get_frontal_face_detector()
+    faces = detector(image, 1)
+    for i, face in enumerate(faces):
+        cv2.rectangle(
+            image,
+            (face.left(), face.top()),
+            (face.right(), face.bottom()),
+            (0, 255, 0),
+            4,
+        )
     cv2.imwrite(f"{datetime.now()}.jpg", image)
