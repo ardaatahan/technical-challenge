@@ -1,5 +1,9 @@
+import numpy as np
+
 import aiohttp
 import asyncio
+import cv2
+from datetime import datetime
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
@@ -28,8 +32,31 @@ async def fetch_stack_overflow_profiles(url):
                     data = filter_profile_data(data)
                     return data
                 else:
-                    return f"Failed to retrieve Stack Overflow user data: Status Code {response.status_code}"
+                    return f"Failed to retrieve Stack Overflow user data: Status Code {response.status}"
         except aiohttp.ClientError as e:
             return str(e)
         except asyncio.TimeoutError:
             return "User data request timed out"
+
+
+async def download_profile_image(url):
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    data = await response.read()
+                    array = np.asarray(bytearray(data), dtype=np.uint8)
+                    image = cv2.imdecode(array, -1)
+                    return image
+                else:
+                    return f"Failed to retrieve user profile image: Status Code {response.status}"
+        except aiohttp.ClientError as e:
+            return f"Profile image could not be downloaded: {str(e)}"
+        except asyncio.TimeoutError:
+            return "User profile image request timed out"
+
+
+# data = asyncio.run(fetch_stack_overflow_profiles(URL))
+# for profile in data:
+#     image = asyncio.run(download_profile_image(profile["profile_image"]))
+#     cv2.imwrite(f"{datetime.now()}.jpg", image)
