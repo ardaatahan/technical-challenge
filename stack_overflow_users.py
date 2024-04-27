@@ -59,8 +59,8 @@ async def download_profile_image(url):
 
 def detect_face_in_image(image):
     detector = dlib.get_frontal_face_detector()
-    faces = detector(image, 1)
-    for i, face in enumerate(faces):
+    faces, _, _ = detector.run(image, 1, -1)
+    for face in faces:
         cv2.rectangle(
             image,
             (face.left(), face.top()),
