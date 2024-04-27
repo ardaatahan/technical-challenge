@@ -6,6 +6,10 @@ import asyncio
 import cv2
 import dlib
 import base64
+import ssl
+
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
@@ -19,7 +23,7 @@ def filter_profile_data(data):
 
     :param data: array of dicts containing raw user profile information
     :return: array of dicts filtered user profile information
-    """ 
+    """
     data = data["items"]
     data = data[: min(MAX_USERS, len(data))]
     keys_to_keep = ["reputation", "location", "display_name", "link", "profile_image"]
@@ -38,7 +42,7 @@ async def fetch_stack_overflow_profiles(url):
 
     :param url: URL of API to be called
     :return: Raw user profile data if response is successful else error message
-    """ 
+    """
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, timeout=10) as response:
@@ -60,7 +64,7 @@ async def download_profile_image(url):
 
     :param url: URL of profile image
     :return: RGB decoded image if image can be downloaded else error message
-    """ 
+    """
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, timeout=10) as response:
@@ -81,10 +85,10 @@ def detect_face_in_image(image):
     """
     Detects whether a there is a face in the input image using dlib.
 
-    :param image: Image to check for face 
+    :param image: Image to check for face
     :return: Image with bounding box highlighting face if face exists else original image
     :return: True if face exists in image else False
-    """ 
+    """
     detector = dlib.get_frontal_face_detector()
     faces, _, _ = detector.run(image, 1, -0.5)
     for face in faces:
@@ -105,11 +109,11 @@ def fetch_and_process_users():
     Higher level function to fetch users and analyze their profile images.
 
     :return: HTML content displaying fetched user information and error messages as necessary
-    """ 
+    """
     profiles = asyncio.run(fetch_stack_overflow_profiles(URL))
     if type(profiles) is str:
         return get_error_html(profiles)
-    
+
     user_content = []
 
     for profile in profiles:
@@ -117,7 +121,9 @@ def fetch_and_process_users():
         image = asyncio.run(download_profile_image(image_url)) if image_url else None
 
         if image is None:
-            user_html = get_user_html(None, profile, "", "Image for this user could not be fetched!")
+            user_html = get_user_html(
+                None, profile, "", "Image for this user could not be fetched!"
+            )
             user_content.append(user_html)
             continue
 
@@ -133,10 +139,10 @@ def fetch_and_process_users():
             else "No face detected in the user profile image!"
         )
         image = image.decode("utf-8")
-        
+
         user_html = get_user_html(image, profile, face_message, None)
         user_content.append(user_html)
-        
+
     return "".join(user_content)
 
 
@@ -144,9 +150,9 @@ def get_error_html(error_message):
     """
     Constructs an HTML template to display error message.
 
-    :param error_message: Message to be displayed 
+    :param error_message: Message to be displayed
     :return: HTML code with the error message
-    """ 
+    """
     return f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
             <div style='text-align: center; font-size: 16px;'> 
@@ -162,37 +168,46 @@ def get_user_html(image, profile, face_message, error_message):
     Constructs an HTML template to display user information and error message.
 
     :param image: Base64 image to be displayed on the page
-    :param profile: Profile information to be displayed 
+    :param profile: Profile information to be displayed
     :param face_message: Message that indicates whether face exists or not in the picture
     :param error_message: Error message to display in case image cannot be fetched
     :return: HTML code with the user information with a potential error message
-    """ 
-    return f"""
-        <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
-           {f"""<div style='margin-bottom: 1rem;'>
-                <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
-            </div>""" if error_message is None else f"""<div style='text-align: center; font-size: 16px; margin-bottom: 1rem;'> 
-                <strong style='font-size: 18px;'></strong> {error_message} Try generating again.
+    """
+    if error_message is None:
+        image_html = f"""
+            <div style="margin-bottom: 1rem;">
+                <img src="data:image/jpeg;base64,{image}" alt="Profile image" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <span style="font-size: 16px; color: grey;">{face_message}</span>
+        """
+    else:
+        image_html = f"""
+            <div style="text-align: center; font-size: 16px; margin-bottom: 1rem;"> 
+                <strong style="font-size: 18px;"></strong> {error_message} Try generating again.
                 <br>
-            </div>"""}
-            <div style='text-align: center; font-size: 16px;'> 
-                <strong style='font-size: 18px;'>Name:</strong> {profile.get("display_name", "Not available")}
+            </div>
+        """
+
+    user_html = f"""
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;">
+           {image_html}
+            <div style="text-align: center; font-size: 16px;"> 
+                <strong style="font-size: 18px;">Name:</strong> {profile.get("display_name", "Not available")}
                 <br>
-                <strong style='font-size: 18px;'>Reputation:</strong> {profile.get("reputation", "Not available")}
+                <strong style="font-size: 18px;">Reputation:</strong> {profile.get("reputation", "Not available")}
                 <br>
-                <strong style='font-size: 18px;'>Location:</strong> {profile.get("location", "Not available")}
+                <strong style="font-size: 18px;">Location:</strong> {profile.get("location", "Not available")}
                 <br>
-                <a href="{profile.get("link", "")}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
-                {f"""<br>
-                <span style='font-size: 16px; color: grey;'>{face_message}</span>""" if error_message is None else """"""}
+                <a href="{profile.get("link", "")}" target="_blank" style="font-size: 16px; color: blue; text-decoration: none;">View Profile</a>
             </div>
         </div>
-        """
+    """
+    return user_html
 
 
 def get_html_content():
     """
-    Constructs the whole HTML template to be displayed to the user. 
+    Constructs the whole HTML template to be displayed to the user.
 
     :return: HTML code to display each user's information and error messages
     """
