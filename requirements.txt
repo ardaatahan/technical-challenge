@@ -1,0 +1,5 @@
+aiohttp==3.9.5
+dlib==19.24.4
+gradio==4.28.3
+numpy==1.26.4
+opencv_python==4.9.0.80
