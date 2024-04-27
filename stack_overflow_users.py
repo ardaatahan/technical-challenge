@@ -90,6 +90,11 @@ def process_users():
         if type(image) is str:
             continue
         image, face_exists = detect_face_in_image(image)
+        face_message = (
+            "Face detected and highlighted in the user profile image!"
+            if face_exists
+            else "No face detected in the user profile image!"
+        )
         image = image.decode("utf-8")
         user_html = f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
@@ -104,6 +109,8 @@ def process_users():
                 <strong style='font-size: 18px;'>Location:</strong> {profile.get("location", "Not available")}
                 <br>
                 <a href="{profile.get("link", "")}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
+                <br>
+                <span style='font-size: 14px; color: grey;'>{face_message}</span>
             </div>
         </div>
         """
