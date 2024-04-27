@@ -96,7 +96,13 @@ def process_users():
             else "No face detected in the user profile image!"
         )
         image = image.decode("utf-8")
-        user_html = f"""
+        user_html = get_user_html(image, profile, face_message)
+        user_content.append(user_html)
+    return "".join(user_content)
+
+
+def get_user_html(image, profile, face_message):
+    return f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
             <div style='margin-bottom: 1rem;'>
                 <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
@@ -114,8 +120,6 @@ def process_users():
             </div>
         </div>
         """
-        user_content.append(user_html)
-    return "".join(user_content)
 
 
 def get_html_content():
