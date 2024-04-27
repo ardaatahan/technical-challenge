@@ -1,9 +1,9 @@
+from datetime import datetime
 import numpy as np
 
 import aiohttp
 import asyncio
 import cv2
-from datetime import datetime
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
@@ -56,7 +56,11 @@ async def download_profile_image(url):
             return "User profile image request timed out"
 
 
-# data = asyncio.run(fetch_stack_overflow_profiles(URL))
-# for profile in data:
-#     image = asyncio.run(download_profile_image(profile["profile_image"]))
-#     cv2.imwrite(f"{datetime.now()}.jpg", image)
+def detect_face_in_image(image):
+    face_classifier = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
+    face = face_classifier.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5)
+    for x, y, w, h in face:
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 4)
+    cv2.imwrite(f"{datetime.now()}.jpg", image)
