@@ -13,6 +13,13 @@ MAX_USERS = 10
 
 
 def filter_profile_data(data):
+    """
+    Filter user profile data to get reputation, display name, profile link, and profile image
+    of first 10 users based on reputation.
+
+    :param data: array of dicts containing raw user profile information
+    :return: array of dicts filtered user profile information
+    """ 
     data = data["items"]
     data = data[: min(MAX_USERS, len(data))]
     keys_to_keep = ["reputation", "location", "display_name", "link", "profile_image"]
@@ -26,6 +33,12 @@ def filter_profile_data(data):
 
 
 async def fetch_stack_overflow_profiles(url):
+    """
+    Fetch user profiles from Stack Overflow API.
+
+    :param url: URL of API to be called
+    :return: Raw user profile data if response is successful else error message
+    """ 
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, timeout=10) as response:
@@ -42,6 +55,12 @@ async def fetch_stack_overflow_profiles(url):
 
 
 async def download_profile_image(url):
+    """
+    Download profile image from given URL.
+
+    :param url: URL of profile image
+    :return: RGB decoded image if image can be downloaded else error message
+    """ 
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, timeout=10) as response:
@@ -59,6 +78,13 @@ async def download_profile_image(url):
 
 
 def detect_face_in_image(image):
+    """
+    Detects whether a there is a face in the input image using dlib.
+
+    :param image: Image to check for face 
+    :return: Image with bounding box highlighting face if face exists else original image
+    :return: True if face exists in image else False
+    """ 
     detector = dlib.get_frontal_face_detector()
     faces, _, _ = detector.run(image, 1, -0.5)
     for face in faces:
@@ -75,6 +101,11 @@ def detect_face_in_image(image):
 
 
 def fetch_and_process_users():
+    """
+    Higher level function to fetch users and analyze their profile images.
+
+    :return: HTML content displaying fetched user information and error messages as necessary
+    """ 
     profiles = asyncio.run(fetch_stack_overflow_profiles(URL))
     if type(profiles) is str:
         return get_error_html(profiles)
@@ -110,6 +141,12 @@ def fetch_and_process_users():
 
 
 def get_error_html(error_message):
+    """
+    Constructs an HTML template to display error message.
+
+    :param error_message: Message to be displayed 
+    :return: HTML code with the error message
+    """ 
     return f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
             <div style='text-align: center; font-size: 16px;'> 
@@ -121,6 +158,15 @@ def get_error_html(error_message):
 
 
 def get_user_html(image, profile, face_message, error_message):
+    """
+    Constructs an HTML template to display user information and error message.
+
+    :param image: Base64 image to be displayed on the page
+    :param profile: Profile information to be displayed 
+    :param face_message: Message that indicates whether face exists or not in the picture
+    :param error_message: Error message to display in case image cannot be fetched
+    :return: HTML code with the user information with a potential error message
+    """ 
     return f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
            {f"""<div style='margin-bottom: 1rem;'>
@@ -145,6 +191,11 @@ def get_user_html(image, profile, face_message, error_message):
 
 
 def get_html_content():
+    """
+    Constructs the whole HTML template to be displayed to the user. 
+
+    :return: HTML code to display each user's information and error messages
+    """
     html_content = fetch_and_process_users()
     return html_content
 
