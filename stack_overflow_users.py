@@ -2,6 +2,20 @@ import requests
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
+MAX_USERS = 10
+
+
+def filter_profile_data(data):
+    data = data["item"]
+    data = data[: min(MAX_USERS, len(data))]
+    keys_to_keep = ["reputation", "location", "display_name", "link", "profile_image"]
+    filtered_data = []
+    for raw_user in data:
+        user = {}
+        for key in keys_to_keep:
+            user[key] = raw_user[key] if key in raw_user else None
+        filtered_data.append(user)
+    return filtered_data
 
 
 def fetch_stack_overflow_profiles(url):
