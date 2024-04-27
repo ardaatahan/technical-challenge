@@ -110,7 +110,7 @@ def process_users():
                 <br>
                 <a href="{profile.get("link", "")}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
                 <br>
-                <span style='font-size: 14px; color: grey;'>{face_message}</span>
+                <span style='font-size: 16px; color: grey;'>{face_message}</span>
             </div>
         </div>
         """
@@ -128,6 +128,8 @@ demo = gr.Interface(
     inputs=[],
     outputs=gr.components.HTML(label="Stack Overflow User Profiles"),
     title="Stack Overflow User Profiles and Face Detection",
+    css="footer{display:none !important}",
+    allow_flagging="never",
 )
 
 
