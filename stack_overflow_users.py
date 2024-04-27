@@ -1,4 +1,3 @@
-from datetime import datetime
 import numpy as np
 import gradio as gr
 
@@ -83,6 +82,8 @@ def process_users():
     for profile in profiles:
         image_url = profile["profile_image"]
         image = asyncio.run(download_profile_image(image_url)) if image_url else None
+        if i == 0:
+            image = None
         if image is None:
             user_html = get_user_html(None, profile, "", "Image for this user could not be fetched!")
             user_content.append(user_html)
@@ -119,7 +120,7 @@ def get_user_html(image, profile, face_message, error_message):
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
            {f"""<div style='margin-bottom: 1rem;'>
                 <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
-            </div>""" if error_message is None else f"""<div style='text-align: center; font-size: 16px;'> 
+            </div>""" if error_message is None else f"""<div style='text-align: center; font-size: 16px; margin-bottom: 1rem;'> 
                 <strong style='font-size: 18px;'></strong> {error_message} Try generating again.
                 <br>
             </div>"""}
