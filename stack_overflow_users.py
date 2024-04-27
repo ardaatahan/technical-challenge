@@ -68,4 +68,39 @@ def detect_face_in_image(image):
             (0, 255, 0),
             4,
         )
-    cv2.imwrite(f"{datetime.now()}.jpg", image)
+    return image
+
+
+def process_users():
+    profiles = asyncio.run(fetch_stack_overflow_profiles(URL))
+    # TODO better error handling
+    if type(profiles) is str:
+        return profiles
+    user_content = []
+    for profile in profiles:
+        image_url = profile["profile_image"]
+        image = asyncio.run(download_profile_image(image_url)) if image_url else None
+        # TODO better error handling
+        if image is None:
+            continue
+        if type(image) is str:
+            continue
+        image = detect_face_in_image(image)
+        user_html = f"""
+        <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 50px;'>
+            <div style='margin-bottom: 10px;'>
+                <img src="{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
+            </div>
+            <div style='text-align: center; font-size: 16px;'> 
+                <strong style='font-size: 18px;'>Name:</strong> {profile.get('display_name')}
+                <br>
+                <strong style='font-size: 18px;'>Reputation:</strong> {profile.get('reputation')}
+                <br>
+                <strong style='font-size: 18px;'>Location:</strong> {profile.get('location', 'Not available')}
+                <br>
+                <a href="{profile.get('link')}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
+            </div>
+        </div>
+        """
+        user_content.append(user_html)
+    return "".join(user_content)
