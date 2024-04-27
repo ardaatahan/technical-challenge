@@ -91,8 +91,8 @@ def process_users():
         image, face_exists = detect_face_in_image(image)
         image = image.decode("utf-8")
         user_html = f"""
-        <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 50px;'>
-            <div style='margin-bottom: 10px;'>
+        <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
+            <div style='margin-bottom: 1rem;'>
                 <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
             </div>
             <div style='text-align: center; font-size: 16px;'> 
