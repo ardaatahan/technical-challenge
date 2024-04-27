@@ -5,6 +5,7 @@ import aiohttp
 import asyncio
 import cv2
 import dlib
+import base64
 
 
 URL = "https://api.stackexchange.com/2.2/users?site=stackoverflow"
@@ -68,7 +69,9 @@ def detect_face_in_image(image):
             (0, 255, 0),
             4,
         )
-    return image
+    _, buffer = cv2.imencode(".jpg", image)
+    image = base64.b64encode(buffer)
+    return image, len(faces) > 0
 
 
 def process_users():
@@ -85,20 +88,21 @@ def process_users():
             continue
         if type(image) is str:
             continue
-        image = detect_face_in_image(image)
+        image, face_exists = detect_face_in_image(image)
+        image = image.decode("utf-8")
         user_html = f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 50px;'>
             <div style='margin-bottom: 10px;'>
-                <img src="{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
+                <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
             </div>
             <div style='text-align: center; font-size: 16px;'> 
-                <strong style='font-size: 18px;'>Name:</strong> {profile.get('display_name')}
+                <strong style='font-size: 18px;'>Name:</strong> {profile.get("display_name", "Not available")}
                 <br>
-                <strong style='font-size: 18px;'>Reputation:</strong> {profile.get('reputation')}
+                <strong style='font-size: 18px;'>Reputation:</strong> {profile.get("reputation", "Not available")}
                 <br>
-                <strong style='font-size: 18px;'>Location:</strong> {profile.get('location', 'Not available')}
+                <strong style='font-size: 18px;'>Location:</strong> {profile.get("location", "Not available")}
                 <br>
-                <a href="{profile.get('link')}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
+                <a href="{profile.get("link", "")}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
             </div>
         </div>
         """
