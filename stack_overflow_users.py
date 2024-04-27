@@ -1,5 +1,6 @@
 from datetime import datetime
 import numpy as np
+import gradio as gr
 
 import aiohttp
 import asyncio
@@ -48,7 +49,7 @@ async def download_profile_image(url):
                 if response.status == 200:
                     data = await response.read()
                     array = np.asarray(bytearray(data), dtype=np.uint8)
-                    image = cv2.imdecode(array, -1)
+                    image = cv2.imdecode(array, 1)
                     return image
                 else:
                     return f"Failed to retrieve user profile image: Status Code {response.status}"
@@ -108,3 +109,20 @@ def process_users():
         """
         user_content.append(user_html)
     return "".join(user_content)
+
+
+def get_html_content():
+    html_content = process_users()
+    return html_content
+
+
+demo = gr.Interface(
+    fn=get_html_content,
+    inputs=[],
+    outputs=gr.components.HTML(label="Stack Overflow User Profiles"),
+    title="Stack Overflow User Profiles and Face Detection",
+)
+
+
+if __name__ == "__main__":
+    demo.launch()
