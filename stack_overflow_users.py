@@ -74,24 +74,27 @@ def detect_face_in_image(image):
     return image, len(faces) > 0
 
 
-def process_users():
+def fetch_and_process_users():
     profiles = asyncio.run(fetch_stack_overflow_profiles(URL))
     if type(profiles) is str:
         return get_error_html(profiles)
+    
     user_content = []
+
     for profile in profiles:
         image_url = profile["profile_image"]
         image = asyncio.run(download_profile_image(image_url)) if image_url else None
-        if i == 0:
-            image = None
+
         if image is None:
             user_html = get_user_html(None, profile, "", "Image for this user could not be fetched!")
             user_content.append(user_html)
             continue
+
         if type(image) is str:
             user_html = get_user_html(None, profile, "", image)
             user_content.append(user_html)
             continue
+
         image, face_exists = detect_face_in_image(image)
         face_message = (
             "Face detected and highlighted in the user profile image!"
@@ -99,8 +102,10 @@ def process_users():
             else "No face detected in the user profile image!"
         )
         image = image.decode("utf-8")
+        
         user_html = get_user_html(image, profile, face_message, None)
         user_content.append(user_html)
+        
     return "".join(user_content)
 
 
@@ -140,7 +145,7 @@ def get_user_html(image, profile, face_message, error_message):
 
 
 def get_html_content():
-    html_content = process_users()
+    html_content = fetch_and_process_users()
     return html_content
 
 
