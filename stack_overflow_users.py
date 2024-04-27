@@ -77,17 +77,19 @@ def detect_face_in_image(image):
 
 def process_users():
     profiles = asyncio.run(fetch_stack_overflow_profiles(URL))
-    # TODO better error handling
     if type(profiles) is str:
-        return profiles
+        return get_error_html(profiles)
     user_content = []
     for profile in profiles:
         image_url = profile["profile_image"]
         image = asyncio.run(download_profile_image(image_url)) if image_url else None
-        # TODO better error handling
         if image is None:
+            user_html = get_user_html(None, profile, "", "Image for this user could not be fetched!")
+            user_content.append(user_html)
             continue
         if type(image) is str:
+            user_html = get_user_html(None, profile, "", image)
+            user_content.append(user_html)
             continue
         image, face_exists = detect_face_in_image(image)
         face_message = (
@@ -96,17 +98,31 @@ def process_users():
             else "No face detected in the user profile image!"
         )
         image = image.decode("utf-8")
-        user_html = get_user_html(image, profile, face_message)
+        user_html = get_user_html(image, profile, face_message, None)
         user_content.append(user_html)
     return "".join(user_content)
 
 
-def get_user_html(image, profile, face_message):
+def get_error_html(error_message):
     return f"""
         <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
-            <div style='margin-bottom: 1rem;'>
-                <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
+            <div style='text-align: center; font-size: 16px;'> 
+                <strong style='font-size: 18px;'></strong> {error_message} Try generating again.
+                <br>
             </div>
+        </div>
+        """
+
+
+def get_user_html(image, profile, face_message, error_message):
+    return f"""
+        <div style='display: flex; flex-direction: column; align-items: center; margin-bottom: 5rem;'>
+           {f"""<div style='margin-bottom: 1rem;'>
+                <img src="data:image/jpeg;base64,{image}" alt="Profile image" style='width: 100%; height: 100%; object-fit: cover;'>
+            </div>""" if error_message is None else f"""<div style='text-align: center; font-size: 16px;'> 
+                <strong style='font-size: 18px;'></strong> {error_message} Try generating again.
+                <br>
+            </div>"""}
             <div style='text-align: center; font-size: 16px;'> 
                 <strong style='font-size: 18px;'>Name:</strong> {profile.get("display_name", "Not available")}
                 <br>
@@ -115,8 +131,8 @@ def get_user_html(image, profile, face_message):
                 <strong style='font-size: 18px;'>Location:</strong> {profile.get("location", "Not available")}
                 <br>
                 <a href="{profile.get("link", "")}" target="_blank" style='font-size: 16px; color: blue; text-decoration: none;'>View Profile</a>
-                <br>
-                <span style='font-size: 16px; color: grey;'>{face_message}</span>
+                {f"""<br>
+                <span style='font-size: 16px; color: grey;'>{face_message}</span>""" if error_message is None else """"""}
             </div>
         </div>
         """
