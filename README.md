@@ -75,3 +75,9 @@ python3 stack_overflow_users.py
 `dlib`:
 * Use Case: Employs robust machine learning algorithms to detect faces in images. dlib offers one of the most effective and accurate face detection models available, making it suitable for projects that require reliable facial recognition.
 * Why Chosen: Despite its complex setup, dlib is selected for its superior performance in face detection compared to other libraries. Its face detector is based on a modification of the standard Histogram of Oriented Gradients (HOG) + Linear SVM method, which is well-suited for this application given its accuracy and efficiency in detecting human faces.
+
+### Future Work
+Given more time and resources, several enhancements could be made to project to further its capabilities and improve user experience. Here are some proposed next steps:
+* Implement Advanced Models: Integrating more advanced face detection technologies such as deep learning models (e.g., MTCNN, SSD, or YOLO) could improve the accuracy and reliability of face detection, especially in diverse lighting and complex backgrounds.
+* Caching Mechanisms: Implement caching for API responses and processed images to reduce the load on external services and speed up repeated queries.
+* Move to a fully cloud-based architecture to improve scalability and maintainability. This involves using cloud services for data storage, processing, and even machine learning tasks.
